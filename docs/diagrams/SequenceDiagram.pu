@@ -1,0 +1,42 @@
+@startuml SequenceDiagram
+
+actor Jenkins
+participant PRChecker
+participant PRBuildChecker
+participant PRAPIChecker
+participant ACRRepository
+participant ACRJiraService
+
+Jenkins -> PRChecker : Excute
+PRChecker -> PRChecker : Check Env
+PRChecker -> PRBuildChecker : RunBuild
+PRBuildChecker -> PRBuildChecker : Run ./build.sh
+PRBuildChecker -> PRBuildChecker : Report analysis
+PRBuildChecker -> PRBuildChecker : Set github status
+PRBuildChecker --> PRChecker : Artifacts
+
+PRChecker -> PRAPIChecker : RunCheck
+PRAPIChecker -> PRAPIChecker : Extract APIs from artifacts
+PRAPIChecker -> ACRRepository : Get the approved APIs
+ACRRepository --> PRAPIChecker : Approved APIs
+PRAPIChecker -> PRAPIChecker : Compare
+
+alt API changed? 
+
+    PRAPIChecker -> ACRJiraService : Query ACR
+    ACRJiraService --> PRAPIChecker : ACRJiraIssue
+
+    alt ACRJiraIssue != null 
+        PRAPIChecker -> PRAPIChecker : Compare between PR and existing ACR
+        alt PR.API != ACR.API
+            PRAPIChecker -> ACRJiraService : Update status to APIReview
+        end
+    else ACRJiraIssue == null
+        PRAPIChecker -> ACRJiraService : Create new ACR issue
+    end
+
+else no changed?
+    PRAPIChecker -> PRAPIChecker : Set github status to **success**
+end
+
+@enduml
