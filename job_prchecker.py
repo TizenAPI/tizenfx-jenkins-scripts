@@ -33,23 +33,19 @@ CTX_CHK_API = 'API Checker'
 LABEL_INTERNAL_API_CHANGED = 'Internal API Changed'
 LABEL_ACR_REQUIRED = 'ACR Required'
 
-pr_labels = []
-
 
 def main():
     env = BuildEnvironment(os.environ)
     pr = PullRequest(env)
     proj = Project(env)
 
-    # Step 1: Set a label for API level detection to the pull request.
-    pr_labels.extend(env.github_pr_labels.split(','))
     if pr.target_branch not in conf.BRANCH_API_LEVEL_MAP.keys():
         print('{} branch is not a managed branch.\n'
               .format(pr.target_branch))
         return
-    category = conf.BRANCH_API_LEVEL_MAP[pr.target_branch]
-    if category not in pr_labels:
-        pr_labels.append(category)
+
+    # Step 1: Set a label for API level detection to the pull request.
+    pr.add_to_labels(conf.BRANCH_API_LEVEL_MAP[pr.target_branch])
 
     # Step 2: Set pending status to all checkers.
     set_pending_to_all_checkers(pr, env)
@@ -102,18 +98,13 @@ def run_api_checker(pr, proj, env):
         if comp.total_changed_count > 0:
             # set labels
             if comp.internal_api_changed:
-                if LABEL_INTERNAL_API_CHANGED not in pr_labels:
-                    pr_labels.append(LABEL_INTERNAL_API_CHANGED)
+                pr.add_to_labels(LABEL_INTERNAL_API_CHANGED)
             else:
-                if LABEL_INTERNAL_API_CHANGED in pr_labels:
-                    pr_labels.remove(LABEL_INTERNAL_API_CHANGED)
+                pr.remove_from_labels(LABEL_INTERNAL_API_CHANGED)
             if comp.public_api_changed:
-                if LABEL_ACR_REQUIRED not in pr_labels:
-                    pr_labels.append(LABEL_ACR_REQUIRED)
+                pr.add_to_labels(LABEL_ACR_REQUIRED)
             else:
-                if LABEL_ACR_REQUIRED in pr_labels:
-                    pr_labels.remove(LABEL_ACR_REQUIRED)
-            pr.set_labels(*tuple(pr_labels))
+                pr.remove_from_labels(LABEL_ACR_REQUIRED)
 
             # TODO: if public api is changed, go to acr process
 
@@ -198,7 +189,6 @@ class BuildEnvironment:
             self.github_repo = m.group(1)
             self.github_pr_number = int(env['GITHUB_PR_NUMBER'])
             self.github_pr_state = env['GITHUB_PR_STATE']
-            self.github_pr_labels = env['GITHUB_PR_LABELS']
             self.github_pr_target_branch = env['GITHUB_PR_TARGET_BRANCH']
             self.build_url = env['BUILD_URL']
             self.workspace = env['WORKSPACE']

@@ -16,7 +16,7 @@
 
 import os
 import re
-from github import Github, GithubObject
+from github import Github, GithubObject, GithubException
 from common.buildlog import BuildLog
 
 DIFF_PATTERN = re.compile(r'^@@ \-([0-9,]+) \+([0-9,]+) @@')
@@ -76,8 +76,20 @@ class PullRequest:
     def set_labels(self, *labels):
         self._ghpr.set_labels(*labels)
 
-    def add_labels(self, *labels):
-        self._ghpr.add_to_labels(*labels)
+    def add_to_labels(self, *labels):
+        try:
+            self._ghpr.add_to_labels(*labels)
+        except GithubException as err:
+            print('Warning: ' + err.data['message'])
+
+    def remove_from_labels(self, label):
+        try:
+            self._ghpr.remove_from_labels(label)
+        except GithubException as err:
+            print('Warning: ' + err.data['message'])
+
+    def get_labels(self):
+        return self._ghpr.get_labels()
 
     def create_review_comment(self, path, line_number, body):
         position = self._line_to_position_map[path][line_number]

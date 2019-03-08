@@ -26,7 +26,7 @@ class BuildLog:
 
     def _parseLog(self):
         pattern = re.compile(
-            r'[0-9]+>(.+)\(([0-9]+),[0-9]+\): (error|warning) ([A-Z0-9]+): (.+) \[/')
+            r'[0-9:]+>(.+)\(([0-9]+),[0-9]+\): (error|warning) ([A-Z0-9]+): (.+) \[/')
         for line in self._file.readlines():
             m = pattern.match(line.strip())
             if m is not None:
