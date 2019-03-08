@@ -32,6 +32,7 @@ CTX_CHK_BUILD = 'Build Checker'
 CTX_CHK_API = 'API Checker'
 LABEL_INTERNAL_API_CHANGED = 'Internal API Changed'
 LABEL_ACR_REQUIRED = 'ACR Required'
+LABEL_ACR_ACCEPTED = 'ACR Accepted'
 
 
 def main():
@@ -102,7 +103,8 @@ def run_api_checker(pr, proj, env):
             else:
                 pr.remove_from_labels(LABEL_INTERNAL_API_CHANGED)
             if comp.public_api_changed:
-                pr.add_to_labels(LABEL_ACR_REQUIRED)
+                if not pr.exists_in_labels(LABEL_ACR_ACCEPTED):
+                    pr.add_to_labels(LABEL_ACR_REQUIRED)
             else:
                 pr.remove_from_labels(LABEL_ACR_REQUIRED)
 

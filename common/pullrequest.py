@@ -88,6 +88,12 @@ class PullRequest:
         except GithubException as err:
             print('Warning: ' + err.data['message'])
 
+    def exists_in_labels(self, label):
+        for lb in self._ghpr.labels:
+            if lb.name == label:
+                return True
+        return False
+
     def get_labels(self):
         return self._ghpr.get_labels()
 
