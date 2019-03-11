@@ -26,18 +26,35 @@ class ShellError(Exception):
         self.message = message
 
 
-def execute(cmd, args=()):
-    cmd = "%s %s" % (cmd, ' '.join(args))
-    print("[shell] %s" % (cmd))
-    pobj = Popen(cmd, shell=True, stdout=PIPE,
+def sh(cmd, args=(), cwd=None,
+       print_stdout=True, return_status=False, return_stdout=False):
+
+    cmdml = cmd.split('\n')
+    if (len(cmdml) > 1):
+        for cmdsl in cmdml:
+            if len(cmdsl.strip()) > 0:
+                sh(cmdsl, args, cwd, print_stdout)
+        return
+
+    cmd = '{} {}'.format(cmd.strip(), ' '.join(args))
+    ret = ''
+    if print_stdout:
+        print('[shell] ' + cmd)
+    pobj = Popen(cmd, cwd=cwd, shell=True, stdout=PIPE,
                  stderr=PIPE, universal_newlines=True)
     while True:
         output = pobj.stdout.readline()
+        ret += output
         if output == '' and pobj.poll() is not None:
             break
-        if output:
+        if output and print_stdout:
             print(output.strip())
     rc = pobj.poll()
-    if rc:
-        raise ShellError("Error running %s, error : %s" %
-                         (cmd, pobj.stderr.read()))
+    if return_status:
+        return rc
+    else:
+        if rc:
+            raise ShellError("Error running %s, error : %s" %
+                             (cmd, pobj.stderr.read()))
+    if return_stdout:
+        return ret

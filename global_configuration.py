@@ -17,3 +17,16 @@
 BRANCH_API_LEVEL_MAP = {'master': 'API6',
                         'API5': 'API5',
                         'API4': 'API4'}
+
+GERRIT_BRANCH_MAP = {'API6': 'tizen',
+                     'API5': 'tizen_5.0',
+                     'API4': 'tizen_4.0'}
+
+VERSION_PREFIX_MAP = {'API6': '6.0.0',
+                      'API5': '5.0.0',
+                      'API4': '4.0.1'}
+
+GERRIT_GIT_URL = ('ssh://dotnetbuild@review.tizen.org:29418/'
+                  'platform/core/csapi/tizenfx')
+
+MYGET_PUSH_FEED = 'https://tizen.myget.org/F/dotnet/api/v2/package'

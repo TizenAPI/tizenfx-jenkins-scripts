@@ -15,7 +15,8 @@
 # limitations under the License.
 
 import os
-from common import shell
+from glob import glob
+from common.shell import sh
 
 
 class ProjectError(Exception):
@@ -36,6 +37,7 @@ class Project:
         self.workspace = None
         self.buildshell = None
         self.logfile = None
+        self._env = env
 
         if workspace is not None:
             if self._is_valid_workspace(workspace):
@@ -48,12 +50,28 @@ class Project:
         self.buildshell = os.path.join(self.workspace, 'build.sh')
         self.logfile = os.path.join(self.workspace, 'msbuild.log')
 
-    def build(self, with_analysis=True):
-        options = ['full', '/flp:LogFile=%s' % self.logfile]
-        if with_analysis:
-            options.append('/p:BuildWithAnalysis=True')
+    @property
+    def commit_count(self):
+        count = sh('cd {} && git rev-list --count HEAD'.format(self.workspace),
+                   print_stdout=False, return_stdout=True)
+        return int(count)
 
-        shell.execute(self.buildshell, options)
+    def build(self, with_analysis=True, dummy=False, pack=False):
+        args = ['full', '/flp:LogFile=%s' % self.logfile]
+        if with_analysis:
+            args.append('/p:BuildWithAnalysis=True')
+        sh(self.buildshell, args)
+        if dummy:
+            sh(self.buildshell, ['dummy'])
+        if pack:
+            sh(self.buildshell, ['pack'])
+
+    def push_nuget_packages(self, apikey, source):
+        nupkgs = glob(os.path.join(self.workspace, 'Artifacts/*.nupkg'))
+        for p in nupkgs:
+            cmd = 'dotnet nuget push {} -k {} -s {} -t 3000'.format(
+                  p, apikey, source)
+            sh(cmd, cwd=self.workspace)
 
     def _find_workspace(self, env):
         if self._is_valid_workspace(env.workspace):
