@@ -15,7 +15,7 @@
 # limitations under the License.
 
 import os
-from common import shell
+from common.shell import sh
 from common.project import ProjectError
 
 APITOOL_PATH = '../tools/bin/APITool.dll'
@@ -29,4 +29,4 @@ def extract(proj, output):
         os.path.join(os.path.dirname(__file__), APITOOL_PATH),
         'print', '--include-hidden', '--format=json',
         '-o ' + output, artifacts_dir]
-    shell.execute('dotnet', apitool_cmd)
+    sh('dotnet', apitool_cmd)
