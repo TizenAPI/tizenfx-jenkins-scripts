@@ -29,14 +29,14 @@ from common.shell import ShellError, sh
 
 def main():
     env = BuildEnvironment(os.environ)
+    proj = Project(env)
 
-    if env.github_branch_name not in conf.BRANCH_API_LEVEL_MAP.keys():
-        print('{} branch is not a managed branch.\n'
-              .format(env.github_branch_name))
-        return
+    # 1. Get Version of TizenFX
+    env.version = '{}.{}'.format(
+        conf.VERSION_PREFIX_MAP[env.category], proj.commit_count + 10000)
+    print('[VERSION] {}'.format(env.version))
 
     # 1. Build Project
-    proj = Project(env)
     proj.build(with_analysis=False, dummy=True, pack=True)
 
     # 2. Push to MyGet
@@ -59,11 +59,6 @@ def set_git_configs(proj):
 
 
 def push_to_tizen(env, proj):
-    category = conf.BRANCH_API_LEVEL_MAP[env.github_branch_name]
-    version = '{}.{}'.format(
-        conf.VERSION_PREFIX_MAP[category], proj.commit_count + 10000)
-    gerrit_branch = conf.GERRIT_BRANCH_MAP[category]
-
     sh('''
         git remote add gerrit {gerrit_url}
         git fetch gerrit {gerrit_branch}
@@ -71,22 +66,24 @@ def push_to_tizen(env, proj):
         git merge --no-edit -s recursive -X theirs origin/{github_branch}
         ./packaging/makespec.sh -r {version} -n {version} -i {version}
         git add packaging/
-    '''.format(version=version,
-               gerrit_url=conf.GERRIT_GIT_URL, gerrit_branch=gerrit_branch,
+    '''.format(version=env.version,
+               gerrit_url=conf.GERRIT_GIT_URL,
+               gerrit_branch=env.gerrit_branch_name,
                github_branch=env.github_branch_name), cwd=proj.workspace)
 
     modified = sh('git diff --cached --numstat | wc -l',
                   cwd=proj.workspace, return_stdout=True, print_stdout=False)
     if int(modified.strip()) > 0:
         dt = datetime.utcnow() + timedelta(hours=9)
-        submit_tag = 'submit/{}/{:%Y%m%d.%H%M%S}'.format(gerrit_branch, dt)
+        submit_tag = 'submit/{}/{:%Y%m%d.%H%M%S}'.format(
+            env.gerrit_branch_name, dt)
         sh('''
             git commit -m "Release {version}"
             git tag -m "Release {version}" {submit_tag}
             git push -f gerrit {gerrit_branch}
             git push --tags gerrit {gerrit_branch}
-        '''.format(version=version, submit_tag=submit_tag,
-                   gerrit_branch=gerrit_branch), cwd=proj.workspace)
+        '''.format(version=env.version, submit_tag=submit_tag,
+                   gerrit_branch=env.gerrit_branch_name), cwd=proj.workspace)
     else:
         print("No changes to publish. Skip publishing to Tizen git repo.")
 
@@ -105,6 +102,9 @@ class BuildEnvironment:
             self.myget_apikey = env['MYGET_APIKEY']
             self.skip_push_to_myget = env['SKIP_PUSH_TO_MYGET']
             self.skip_push_to_tizen = env['SKIP_PUSH_TO_TIZEN']
+            self.version = str()
+            self.category = conf.BRANCH_API_LEVEL_MAP[self.github_branch_name]
+            self.gerrit_branch_name = conf.GERRIT_BRANCH_MAP[self.category]
         except KeyError:
             raise NotValidEnvironmentException()
 
