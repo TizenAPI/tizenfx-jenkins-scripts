@@ -36,14 +36,14 @@ def main():
         conf.VERSION_PREFIX_MAP[env.category], proj.commit_count + 10000)
     print('[VERSION] {}'.format(env.version))
 
-    # 1. Build Project
+    # 2. Build Project
     proj.build(with_analysis=False, dummy=True, pack=True)
 
-    # 2. Push to MyGet
+    # 3. Push to MyGet
     if not env.skip_push_to_myget:
         proj.push_nuget_packages(env.myget_apikey, conf.MYGET_PUSH_FEED)
 
-    # 3. Sync to Tizen Git Repository
+    # 4. Sync to Tizen Git Repository
     if not env.skip_push_to_tizen:
         set_git_configs(proj)
         push_to_tizen(env, proj)

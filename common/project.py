@@ -56,6 +56,10 @@ class Project:
                    print_stdout=False, return_stdout=True)
         return int(count)
 
+    def restore(self):
+        cmd = 'dotnet msbuild ./build/build.proj /nologo /t:restore'
+        sh(cmd, cwd=self.workspace)
+
     def build(self, with_analysis=True, dummy=False, pack=False):
         args = ['full', '/flp:LogFile=%s' % self.logfile]
         if with_analysis:
