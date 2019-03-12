@@ -77,6 +77,7 @@ def push_to_tizen(env, proj):
         dt = datetime.utcnow() + timedelta(hours=9)
         submit_tag = 'submit/{}/{:%Y%m%d.%H%M%S}'.format(
             env.gerrit_branch_name, dt)
+        print('[SUBMIT_TAG] {}'.format(submit_tag))
         sh('''
             git commit -m "Release {version}"
             git tag -m "Release {version}" {submit_tag}
