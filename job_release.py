@@ -29,7 +29,6 @@ from common.shell import ShellError, sh
 
 def main():
     env = BuildEnvironment(os.environ)
-    proj = Project(env)
 
     if env.github_branch_name not in conf.BRANCH_API_LEVEL_MAP.keys():
         print('{} branch is not a managed branch.\n'
@@ -37,6 +36,7 @@ def main():
         return
 
     # 1. Build Project
+    proj = Project(env)
     proj.build(with_analysis=False, dummy=True, pack=True)
 
     # 2. Push to MyGet
@@ -91,15 +91,8 @@ class BuildEnvironment:
 
     def __init__(self, env):
         try:
-            self.github_repo_git_url = env['GITHUB_REPO_GIT_URL']
-            m = re.match(r'git://github.com/(.+/.+)\.git',
-                         self.github_repo_git_url)
-            self.github_repo = m.group(1)
             self.github_branch_name = env['GITHUB_BRANCH_NAME']
-            self.build_url = env['BUILD_URL']
             self.workspace = env['WORKSPACE']
-            self.aws_access_key_id = env['AWS_ACCESS_KEY_ID']
-            self.aws_secret_access_key = env['AWS_SECRET_ACCESS_KEY']
             self.myget_apikey = env['MYGET_APIKEY']
         except KeyError:
             raise NotValidEnvironmentException()

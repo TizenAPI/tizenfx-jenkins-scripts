@@ -57,12 +57,7 @@ class BuildEnvironment:
 
     def __init__(self, env):
         try:
-            self.github_repo_git_url = env['GITHUB_REPO_GIT_URL']
-            m = re.match(r'git://github.com/(.+/.+)\.git',
-                         self.github_repo_git_url)
-            self.github_repo = m.group(1)
             self.github_branch_name = env['GITHUB_BRANCH_NAME']
-            self.build_url = env['BUILD_URL']
             self.workspace = env['WORKSPACE']
             self.aws_access_key_id = env['AWS_ACCESS_KEY_ID']
             self.aws_secret_access_key = env['AWS_SECRET_ACCESS_KEY']
