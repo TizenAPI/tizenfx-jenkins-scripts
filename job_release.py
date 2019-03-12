@@ -101,8 +101,8 @@ class BuildEnvironment:
             self.github_branch_name = env['GITHUB_BRANCH_NAME']
             self.workspace = env['WORKSPACE']
             self.myget_apikey = env['MYGET_APIKEY']
-            self.skip_push_to_myget = env['SKIP_PUSH_TO_MYGET']
-            self.skip_push_to_tizen = env['SKIP_PUSH_TO_TIZEN']
+            self.skip_push_to_myget = env['SKIP_PUSH_TO_MYGET'] == 'true'
+            self.skip_push_to_tizen = env['SKIP_PUSH_TO_TIZEN'] == 'true'
             self.version = str()
             self.category = conf.BRANCH_API_LEVEL_MAP[self.github_branch_name]
             self.gerrit_branch_name = conf.GERRIT_BRANCH_MAP[self.category]
