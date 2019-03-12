@@ -40,20 +40,29 @@ def main():
     proj.build(with_analysis=False, dummy=True, pack=True)
 
     # 2. Push to MyGet
-    proj.push_nuget_packages(env.myget_apikey, conf.MYGET_PUSH_FEED)
+    if not env.skip_push_to_myget:
+        proj.push_nuget_packages(env.myget_apikey, conf.MYGET_PUSH_FEED)
 
     # 3. Sync to Tizen Git Repository
-    category = conf.BRANCH_API_LEVEL_MAP[env.github_branch_name]
-    version = '{}.{}'.format(
-        conf.VERSION_PREFIX_MAP[category], proj.commit_count + 10000)
-    gerrit_branch = conf.GERRIT_BRANCH_MAP[category]
+    if not env.skip_push_to_tizen:
+        set_git_configs(proj)
+        push_to_tizen(env, proj)
 
+
+def set_git_configs(proj):
     sshopt = 'ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no'
     sh('''
         git config --local user.name "TizenAPI-Bot"
         git config --local user.email "tizenapi@samsung.com"
         git config core.sshCommand '{sshopt}'
     '''.format(sshopt=sshopt), cwd=proj.workspace)
+
+
+def push_to_tizen(env, proj):
+    category = conf.BRANCH_API_LEVEL_MAP[env.github_branch_name]
+    version = '{}.{}'.format(
+        conf.VERSION_PREFIX_MAP[category], proj.commit_count + 10000)
+    gerrit_branch = conf.GERRIT_BRANCH_MAP[category]
 
     sh('''
         git remote add gerrit {gerrit_url}
@@ -62,7 +71,7 @@ def main():
         git merge --no-edit -s recursive -X theirs origin/{github_branch}
         ./packaging/makespec.sh -r {version} -n {version} -i {version}
         git add packaging/
-    '''.format(version=version, sshopt=sshopt,
+    '''.format(version=version,
                gerrit_url=conf.GERRIT_GIT_URL, gerrit_branch=gerrit_branch,
                github_branch=env.github_branch_name), cwd=proj.workspace)
 
@@ -94,6 +103,8 @@ class BuildEnvironment:
             self.github_branch_name = env['GITHUB_BRANCH_NAME']
             self.workspace = env['WORKSPACE']
             self.myget_apikey = env['MYGET_APIKEY']
+            self.skip_push_to_myget = env['SKIP_PUSH_TO_MYGET']
+            self.skip_push_to_tizen = env['SKIP_PUSH_TO_TIZEN']
         except KeyError:
             raise NotValidEnvironmentException()
 
