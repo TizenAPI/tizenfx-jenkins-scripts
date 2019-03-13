@@ -146,11 +146,20 @@ def make_api_changed_report(comp):
     elif comp.internal_api_changed:
         body += '**Internal API Changed**\n'
 
+    if comp.total_changed_count > 5:
+        body += ('<details><summary>'
+                 'Show API Changes. (Added: {}, Changed: {}, Removed: {})'
+                 '</summary>\n\n'.format(
+                     len(comp.added), len(comp.changed), len(comp.removed)))
+
     body += '```diff\n'
     for line in diff_lines:
         if line[0] is not '?':
             body += line
-    body += '```'
+    body += '```\n'
+
+    if comp.total_changed_count > 5:
+        body += '</details>\n'
 
     return body
 
