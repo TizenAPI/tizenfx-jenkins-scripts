@@ -16,6 +16,7 @@
 
 import os
 import re
+from time import sleep
 from github import Github, GithubObject, GithubException
 from common.buildlog import BuildLog
 
@@ -114,7 +115,9 @@ class PullRequest:
     def report_warnings_as_review_comment(self, logfile):
         if not os.path.exists(logfile):
             return
+
         build_log = BuildLog(logfile)
+        count = 0
 
         for f in self.changed_files:
             path = f.filename
@@ -125,11 +128,17 @@ class PullRequest:
                 for warn in build_log.warnings:
                     if not path.endswith(warn['file']):
                         continue
-                    if (line[0]) <= warn['line'] \
-                            and warn['line'] < (line[0] + line[1]):
-                        body = 'warning {}: {}'.format(
-                            warn['code'], warn['message'])
-                        self.create_review_comment(path, warn['line'], body)
+                    wcode = warn['code']
+                    wline = warn['line']
+                    wmsg = warn['message']
+                    if line[0] <= wline and wline < (line[0] + line[1]):
+                        body = 'warning {}: {}'.format(wcode, wmsg)
+                        self.create_review_comment(path, wline, body)
+                        count += 1
+                        if count > 50:
+                            print('Too many comments! Skip the rest!')
+                            return
+                        sleep(0.5)
 
     def report_errors_as_issue_comment(self, logfile):
         if not os.path.exists(logfile):
