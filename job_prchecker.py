@@ -96,20 +96,19 @@ def run_api_checker(pr, proj, env):
         # compare API with APIDB
         comp = APIDB(env).compare(category, apijson_file)
 
+        # set labels
+        if comp.internal_api_changed:
+            pr.add_to_labels(LABEL_INTERNAL_API_CHANGED)
+        else:
+            pr.remove_from_labels(LABEL_INTERNAL_API_CHANGED)
+        if comp.public_api_changed:
+            if not pr.exists_in_labels(LABEL_ACR_ACCEPTED):
+                pr.add_to_labels(LABEL_ACR_REQUIRED)
+        else:
+            pr.remove_from_labels(LABEL_ACR_REQUIRED)
+
         if comp.total_changed_count > 0:
-            # set labels
-            if comp.internal_api_changed:
-                pr.add_to_labels(LABEL_INTERNAL_API_CHANGED)
-            else:
-                pr.remove_from_labels(LABEL_INTERNAL_API_CHANGED)
-            if comp.public_api_changed:
-                if not pr.exists_in_labels(LABEL_ACR_ACCEPTED):
-                    pr.add_to_labels(LABEL_ACR_REQUIRED)
-            else:
-                pr.remove_from_labels(LABEL_ACR_REQUIRED)
-
             # TODO: if public api is changed, go to acr process
-
             # create an api changed report as a comment
             body = make_api_changed_report(comp)
             pr.create_issue_comment(body)
