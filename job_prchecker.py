@@ -172,6 +172,8 @@ def print_api_for_diff(info, prefix=''):
     if 'Since' in info.keys():
         lines.append('{}/// <since_tizen> {} </since_tizen>\n'
                      .format(prefix, info['Since']))
+    if info['IsObsolete']:
+        lines.append('{}[Obsolete]\n'.format(prefix))
     if info['IsHidden']:
         lines.append('{}[EditorBrowsable(EditorBrowsableState.Never)]\n'
                      .format(prefix))
