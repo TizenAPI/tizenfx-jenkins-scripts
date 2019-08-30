@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-BRANCH_API_LEVEL_MAP = {'master': 'API6',
+BRANCH_API_LEVEL_MAP = {'master': 'API6', 'devel/master': 'API6',
                         'API5': 'API5',
                         'API4': 'API4'}
 
