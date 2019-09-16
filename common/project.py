@@ -60,10 +60,12 @@ class Project:
         cmd = 'dotnet msbuild ./build/build.proj /nologo /t:restore'
         sh(cmd, cwd=self.workspace)
 
-    def build(self, with_analysis=True, dummy=False, pack=False):
+    def build(self, with_analysis=True, with_design=True, dummy=False, pack=False):
         args = ['full', '/flp:LogFile=%s' % self.logfile]
         if with_analysis:
             args.append('/p:BuildWithAnalysis=True')
+        if with_design:
+            args.append('/p:BuildDesignAssembly=True')
         sh(self.buildshell, args)
         if dummy:
             sh(self.buildshell, ['dummy'])
