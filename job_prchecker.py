@@ -111,6 +111,9 @@ def run_api_checker(pr, proj, env):
             # TODO: if public api is changed, go to acr process
             # create an api changed report as a comment
             body = make_api_changed_report(comp)
+            if len(body) > 65535:
+                body = make_api_changed_report(comp, skip_detail=True)
+
             pr.create_issue_comment(body)
 
         pr.set_status('success', description='API check finished.',
@@ -122,7 +125,7 @@ def run_api_checker(pr, proj, env):
         raise
 
 
-def make_api_changed_report(comp):
+def make_api_changed_report(comp, skip_detail=False):
     differ = difflib.Differ()
     diff_lines = []
 
@@ -145,20 +148,21 @@ def make_api_changed_report(comp):
     elif comp.internal_api_changed:
         body += '**Internal API Changed**\n'
 
-    if comp.total_changed_count > 5:
-        body += ('<details><summary>'
-                 'Show API Changes. (Added: {}, Changed: {}, Removed: {})'
-                 '</summary>\n\n'.format(
-                     len(comp.added), len(comp.changed), len(comp.removed)))
+    if not skip_detail:
+        if comp.total_changed_count > 5:
+            body += ('<details><summary>'
+                    'Show API Changes. (Added: {}, Changed: {}, Removed: {})'
+                    '</summary>\n\n'.format(
+                        len(comp.added), len(comp.changed), len(comp.removed)))
 
-    body += '```diff\n'
-    for line in diff_lines:
-        if line[0] is not '?':
-            body += line
-    body += '```\n'
+        body += '```diff\n'
+        for line in diff_lines:
+            if line[0] is not '?':
+                body += line
+        body += '```\n'
 
-    if comp.total_changed_count > 5:
-        body += '</details>\n'
+        if comp.total_changed_count > 5:
+            body += '</details>\n'
 
     return body
 
