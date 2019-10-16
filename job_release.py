@@ -80,11 +80,15 @@ def push_to_tizen(env, proj):
         print('[SUBMIT_TAG] {}'.format(submit_tag))
         sh('''
             git commit -m "Release {version}"
-            git tag -m "Release {version}" {submit_tag}
             git push -f gerrit {gerrit_branch}
-            git push --tags gerrit {gerrit_branch}
         '''.format(version=env.version, submit_tag=submit_tag,
                    gerrit_branch=env.gerrit_branch_name), cwd=proj.workspace)
+        if not env.skip_submit_request:
+            sh('''
+                git tag -m "Release {version}" {submit_tag}
+                git push --tags gerrit {gerrit_branch}
+            '''.format(version=env.version, submit_tag=submit_tag,
+                       gerrit_branch=env.gerrit_branch_name), cwd=proj.workspace)
     else:
         print("No changes to publish. Skip publishing to Tizen git repo.")
 
@@ -103,6 +107,7 @@ class BuildEnvironment:
             self.myget_apikey = env['MYGET_APIKEY']
             self.skip_push_to_myget = env['SKIP_PUSH_TO_MYGET'] == 'true'
             self.skip_push_to_tizen = env['SKIP_PUSH_TO_TIZEN'] == 'true'
+            self.skip_submit_request = env['SKIP_SUBMIT_REQUEST'] == 'true'
             self.version = str()
             self.category = conf.BRANCH_API_LEVEL_MAP[self.github_branch_name]
             self.gerrit_branch_name = conf.GERRIT_BRANCH_MAP[self.category]
