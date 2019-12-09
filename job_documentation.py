@@ -37,7 +37,7 @@ def main():
     proj.restore()
 
     # 3. Run DocFX
-    sh('mono /usr/share/docfx/docfx.exe docs/docfx.json',
+    sh('mono --assembly-loader=strict /usr/share/docfx/docfx.exe docs/docfx.json',
        cwd=proj.workspace)
 
     # 4. Make and push a commit to gh-pages branch
