@@ -59,6 +59,8 @@ def set_git_configs(proj):
 
 
 def push_to_tizen(env, proj):
+    if not env.gerrit_branch_name:
+        return
     sh('''
         git remote add gerrit {gerrit_url}
         git fetch gerrit {gerrit_branch}
