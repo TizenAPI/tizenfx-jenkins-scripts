@@ -14,19 +14,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-BRANCH_API_LEVEL_MAP = {'master': 'API8', 'devel/master': 'API8',
+BRANCH_API_LEVEL_MAP = {'master': 'API9', 'devel/master': 'API9',
+                        'API8': 'API8',
                         'API7': 'API7',
                         'API6': 'API6',
                         'API5': 'API5',
                         'API4': 'API4'}
 
-GERRIT_BRANCH_MAP = {'API8': 'tizen',
+GERRIT_BRANCH_MAP = {'API9': 'tizen',
+                     'API8': 'tizen_6.0',
                      'API7': 'tizen_5.5',
                      'API6': 'tizen_5.5_tv',
                      'API5': 'tizen_5.0',
                      'API4': 'tizen_4.0'}
 
-VERSION_PREFIX_MAP = {'API8': '8.0.0',
+VERSION_PREFIX_MAP = {'API9': '9.0.0',
+                      'API8': '8.0.0',
                       'API7': '7.0.0',
                       'API6': '6.0.0',
                       'API5': '5.0.0',
